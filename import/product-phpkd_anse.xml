@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<product productid="phpkd_anse" active="1">
+	<title>Advanced Notice System Enhancements</title>
+	<description><![CDATA[This product extends 'Notices Criteria' adding many other useful criteria, also allows users to 'Dismiss' any notice and/or return it again if needed from own UserCP.]]></description>
+	<version>1.0.0</version>
+	<url />
+	<versioncheckurl />
+	<dependencies>
+	</dependencies>
+	<codes>
+		<code version="*">
+			<installcode><![CDATA[$phpkd_anse_files = array(
+	DIR . '/includes/phpkd/phpkd_anse_functions.php',
+	DIR . '/includes/phpkd/phpkd_anse_plugins.php',
+	DIR . '/includes/xml/bitfield_phpkd_anse.xml',
+	DIR . '/includes/clientscript/phpkd_anse_ajax.js',
+);
+
+function phpkd_anse_files($files)
+{
+	foreach ($files AS $fileid => $file)
+	{
+		if (file_exists($file))
+		{
+			unset($files[$fileid]);
+		}
+	}
+
+	return $files;
+}
+
+
+$phpkd_anse_files_not_exists = phpkd_anse_files($phpkd_anse_files);
+
+if (is_array($phpkd_anse_files_not_exists) AND !empty($phpkd_anse_files_not_exists))
+{
+	$phpkd_anse_absent_files .= "<ol>\n";
+	foreach ($phpkd_anse_files_not_exists AS $phpkd_anse_absent_file)
+	{
+		$phpkd_anse_absent_files .= "\t<li>" . $phpkd_anse_absent_file . "</li>\n";
+	}
+	$phpkd_anse_absent_files .= "</ol>\n";
+	print_dots_stop();
+	print_cp_message('Please make sure that you have uploaded the following files that came with the product "Advanced Notice System Enhancements" before installing or upgrading!' . $phpkd_anse_absent_files);
+}]]></installcode>
+			<uninstallcode />
+		</code>
+		<code version="1.0.0">
+			<installcode><![CDATA[$db->hide_errors();
+// Alter tables & add required fields
+require_once(DIR . '/includes/class_dbalter.php');
+$db_alter =& new vB_Database_Alter_MySQL($db);
+$db_alter->fetch_table_info('noticecriteria');
+if (!$db_alter->fetch_field_info['condition4'])
+{
+	$db_alter->add_field(array(
+		'name'       => 'condition4',
+		'type'       => 'varchar',
+		'length'     => '250',
+		'null'       => false,
+		'default'    => '',
+	));
+}
+if (!$db_alter->fetch_field_info['condition5'])
+{	$db_alter->add_field(array(
+		'name'       => 'condition5',
+		'type'       => 'varchar',
+		'length'     => '250',
+		'null'       => false,
+		'default'    => '',
+	));
+}
+
+$db_alter->fetch_table_info('usergroup');
+if (!$db_alter->fetch_field_info['phpkdanse'])
+{	$db_alter->add_field(array(
+		'name'       => 'phpkdanse',
+		'type'       => 'int',
+		'length'     => '10',
+		'attributes' => 'unsigned',
+		'null'       => false,
+		'default'    => '0',
+	));
+}
+
+$db_alter->fetch_table_info('user');
+if (!$db_alter->fetch_field_info['phpkd_anse_dismissed'])
+{	$db_alter->add_field(array(
+		'name'       => 'phpkd_anse_dismissed',
+		'type'       => 'varchar',
+		'length'     => '250',
+		'null'       => false,
+		'default'    => '',
+	));
+}
+$db->show_errors();]]></installcode>
+			<uninstallcode><![CDATA[$db->hide_errors();
+// Alter tables & drop appropriated fields
+require_once(DIR . '/includes/class_dbalter.php');
+$db_alter =& new vB_Database_Alter_MySQL($db);
+$db_alter->fetch_table_info('noticecriteria');
+if ($db_alter->fetch_field_info['condition4'])
+{
+	$db_alter->drop_field('condition4');
+}
+if ($db_alter->fetch_field_info['condition5'])
+{
+	$db_alter->drop_field('condition5');
+}
+
+$db_alter->fetch_table_info('usergroup');
+if ($db_alter->fetch_field_info['phpkdanse'])
+{
+	$db_alter->drop_field('phpkdanse');
+}
+
+$db_alter->fetch_table_info('user');
+if ($db_alter->fetch_field_info['phpkd_anse_dismissed'])
+{
+	$db_alter->drop_field('phpkd_anse_dismissed');
+}
+$db->show_errors();]]></uninstallcode>
+		</code>
+	</codes>
+	<templates>
+		<template name="phpkd_anse_noticebit_navbar" templatetype="template" date="1221090471" username="PHPKD" version="1.0.0"><![CDATA[<div class="$bgclass" id="div_navbarnotice_$_noticeid">
+	<if condition="$show['phpkd_anse_dismiss']">
+		<span style="float: $stylevar[right]" id="span_dismissnotice_$_noticeid">
+			<img class="inlineimg" src="$stylevar[imgdir_misc]/phpkd_anse_dismiss.png" alt="$vbphrase[phpkd_anse_dismiss]" border="0" />
+			<a rel="vB::AJAX"></a>
+		</span>
+	</if>
+	$notice_html
+</div>]]></template>
+		<template name="phpkd_anse_noticebit_usercp" templatetype="template" date="1221090622" username="PHPKD" version="1.0.0"><![CDATA[<div class="$bgclass" id="div_usercpnotice_$notice_id">
+	<if condition="$show['phpkd_anse_restore']">
+		<span style="float: $stylevar[right]" id="span_restorenotice_$notice_id">
+			<img class="inlineimg" src="$stylevar[imgdir_misc]/phpkd_anse_restore.png" alt="$vbphrase[phpkd_anse_restore]" border="0" />
+			<a rel="vB::AJAX"></a>
+		</span>
+	</if>
+	$notice_html_usercp
+</div>]]></template>
+		<template name="phpkd_anse_notices_navbar" templatetype="template" date="1221092167" username="PHPKD" version="1.0.0"><![CDATA[<if condition="$show['phpkd_anse_notices_navbar']">
+	<table class="tborder" cellpadding="$stylevar[cellpadding]" cellspacing="$stylevar[cellspacing]" border="0" width="100%" align="center" id="noticelist_navbar" style="margin-bottom: 15px">
+	<thead>
+	<tr>
+		<td class="thead">
+			<a style="float:$stylevar[right]" href="#top" onclick="return toggle_collapse('noticelist_navbar')"><img id="collapseimg_noticelist_navbar" src="$stylevar[imgdir_button]/collapse_thead$vbcollapse[collapseimg_noticelist_navbar].gif" alt="" border="0" /></a>
+			$vbphrase[notices]
+		</td>
+	</tr>
+	</thead>
+	<tbody id="collapseobj_noticelist_navbar" style="$vbcollapse[collapseobj_noticelist_navbar]">
+	<tr>
+		<td class="alt1">$phpkd_anse_noticebit_navbar</td>
+	</tr>
+	</tbody>
+	</table>
+
+	<if condition="$show['phpkd_anse_ajax_js_navbar']">
+		<script type="text/javascript" src="clientscript/phpkd_anse_ajax.js?v=$vboptions[simpleversion]"></script>
+		<script type="text/javascript">
+		<!--
+		var NOTICELIST_NAVBAR = 'noticelist_navbar';
+		vB_AJAX_Noticelist_Init(NOTICELIST_NAVBAR);
+		//-->
+		</script>
+	</if>
+</if>]]></template>
+		<template name="phpkd_anse_notices_usercp" templatetype="template" date="1221092176" username="PHPKD" version="1.0.0"><![CDATA[<if condition="$show['phpkd_anse_notices_usercp']">
+	<table class="tborder" cellpadding="$stylevar[cellpadding]" cellspacing="$stylevar[cellspacing]" border="0" width="100%" align="center" id="noticelist_usercp" style="margin-bottom: 15px">
+	<thead>
+	<tr>
+		<td class="thead">
+			<a style="float:$stylevar[right]" href="#top" onclick="return toggle_collapse('noticelist_usercp')"><img id="collapseimg_noticelist_usercp" src="$stylevar[imgdir_button]/collapse_thead$vbcollapse[collapseimg_noticelist_usercp].gif" alt="" border="0" /></a>
+			$vbphrase[phpkd_anse_dismissed_notices]
+		</td>
+	</tr>
+	</thead>
+	<tbody id="collapseobj_noticelist_usercp" style="$vbcollapse[collapseobj_noticelist_usercp]">
+	<tr>
+		<td class="alt1">$phpkd_anse_noticebit_usercp</td>
+	</tr>
+	</tbody>
+	</table>
+
+	<if condition="$show['phpkd_anse_ajax_js_usercp']">
+		<script type="text/javascript" src="clientscript/phpkd_anse_ajax.js?v=$vboptions[simpleversion]"></script>
+		<script type="text/javascript">
+		<!--
+		var NOTICELIST_USERCP = 'noticelist_usercp';
+		vB_AJAX_Noticelist_Init(NOTICELIST_USERCP);
+		//-->
+		</script>
+	</if>
+</if>]]></template>
+	</templates>
+	<plugins>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Advanced Notices Criteria - [ Ajax Process ]]]></title>
+			<hookname>ajax_start</hookname>
+			<phpcode><![CDATA[require(DIR . '/includes/phpkd/phpkd_anse_plugins.php');]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Advanced Notices Criteria - [ Cache Templates ]]]></title>
+			<hookname>cache_templates</hookname>
+			<phpcode><![CDATA[require(DIR . '/includes/phpkd/phpkd_anse_plugins.php');]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Advanced Notices Criteria - [ Replace Templates ]]]></title>
+			<hookname>global_setup_complete</hookname>
+			<phpcode><![CDATA[require(DIR . '/includes/phpkd/phpkd_anse_plugins.php');]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Advanced Notices Criteria - [ Fetch subscriptions phrasegroup ]]]></title>
+			<hookname>init_startup</hookname>
+			<phpcode><![CDATA[require(DIR . '/includes/phpkd/phpkd_anse_plugins.php');]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Advanced Notices Criteria - [ Extra Criteria Check ]]]></title>
+			<hookname>notices_check_criteria</hookname>
+			<phpcode><![CDATA[require(DIR . '/includes/phpkd/phpkd_anse_plugins.php');]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Advanced Notices Criteria - [ Extra Criteria List ]]]></title>
+			<hookname>notices_list_criteria</hookname>
+			<phpcode><![CDATA[require(DIR . '/includes/phpkd/phpkd_anse_plugins.php');]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Advanced Notices Criteria - [ Process subscribtion replacements ]]]></title>
+			<hookname>notices_noticebit</hookname>
+			<phpcode><![CDATA[require(DIR . '/includes/phpkd/phpkd_anse_plugins.php');]]></phpcode>
+		</plugin>
+		<plugin active="1" executionorder="5">
+			<title><![CDATA[Advanced Notices Criteria - [ UserCP Restore Options ]]]></title>
+			<hookname>usercp_complete</hookname>
+			<phpcode><![CDATA[require(DIR . '/includes/phpkd/phpkd_anse_plugins.php');]]></phpcode>
+		</plugin>
+	</plugins>
+	<phrases>
+		<phrasetype name="Control Panel Options" fieldname="cpoption">
+			<phrase name="phpkd_anse_navbar_notices_above" date="1221076071" username="PHPKD" version="1.0.0"><![CDATA[Above Navbar]]></phrase>
+			<phrase name="phpkd_anse_navbar_notices_under" date="1221076057" username="PHPKD" version="1.0.0"><![CDATA[Under Navbar]]></phrase>
+		</phrasetype>
+		<phrasetype name="Permissions" fieldname="cppermission">
+			<phrase name="phpkdanse_candismiss" date="1221059898" username="PHPKD" version="1.0.0"><![CDATA[Can Dismiss Notices]]></phrase>
+			<phrase name="phpkdanse_canmanage" date="1221059914" username="PHPKD" version="1.0.0"><![CDATA[Can Manage Notices]]></phrase>
+			<phrase name="phpkdanse_canrestore" date="1221090168" username="PHPKD" version="1.0.0"><![CDATA[Can Restore Dismissed Notices]]></phrase>
+			<phrase name="phpkdanse_permissions" date="1221059880" username="PHPKD" version="1.0.0"><![CDATA[Advanced Notices System Enhancements Permissions]]></phrase>
+		</phrasetype>
+		<phrasetype name="GLOBAL" fieldname="global">
+			<phrase name="phpkd_anse_age_x_y_criteria" date="1220719206" username="PHPKD" version="1.0.0"><![CDATA[Age {1} {2}]]></phrase>
+			<phrase name="phpkd_anse_age_x_y_equal" date="1220719157" username="PHPKD" version="1.0.0"><![CDATA[Equal]]></phrase>
+			<phrase name="phpkd_anse_age_x_y_older" date="1220719166" username="PHPKD" version="1.0.0"><![CDATA[Older]]></phrase>
+			<phrase name="phpkd_anse_age_x_y_olderequal" date="1220719180" username="PHPKD" version="1.0.0"><![CDATA[Older or Equal]]></phrase>
+			<phrase name="phpkd_anse_age_x_y_younger" date="1220719126" username="PHPKD" version="1.0.0"><![CDATA[Younger]]></phrase>
+			<phrase name="phpkd_anse_age_x_y_youngerequal" date="1220719143" username="PHPKD" version="1.0.0"><![CDATA[Younger or Equal]]></phrase>
+			<phrase name="phpkd_anse_browsing_album_x_criteria" date="1220718681" username="PHPKD" version="1.0.0"><![CDATA[User is browsing album {1}]]></phrase>
+			<phrase name="phpkd_anse_browsing_poll_x_criteria" date="1220718001" username="PHPKD" version="1.0.0"><![CDATA[User is browsing poll {1}]]></phrase>
+			<phrase name="phpkd_anse_browsing_profile_x_criteria" date="1220718640" username="PHPKD" version="1.0.0"><![CDATA[User is browsing profile {1}]]></phrase>
+			<phrase name="phpkd_anse_browsing_socialgroup_x_criteria" date="1220718730" username="PHPKD" version="1.0.0"><![CDATA[User is browsing social group {1}]]></phrase>
+			<phrase name="phpkd_anse_browsing_thread_x_criteria" date="1220717955" username="PHPKD" version="1.0.0"><![CDATA[User is browsing thread {1}]]></phrase>
+			<phrase name="phpkd_anse_date_time_v_w_x_y_z_criteria" date="1220719439" username="PHPKD" version="1.0.0"><![CDATA[Week Day {1}, Month Day {2}, Hour {3}, Minute {4}, Second {5}]]></phrase>
+			<phrase name="phpkd_anse_language_is_x_criteria" date="1220717456" username="PHPKD" version="1.0.0"><![CDATA[User is browsing using language {1}]]></phrase>
+			<phrase name="phpkd_anse_no_active_paid_subs" date="1220716811" username="PHPKD" version="1.0.0"><![CDATA[No Active Subscriptions]]></phrase>
+			<phrase name="phpkd_anse_not_voted_on_poll_x" date="1220718418" username="PHPKD" version="1.0.0"><![CDATA[{1} - {2}]]></phrase>
+			<phrase name="phpkd_anse_paid_sub_expired" date="1220716910" username="PHPKD" version="1.0.0"><![CDATA[Subscription Expired]]></phrase>
+			<phrase name="phpkd_anse_paid_sub_x_expire_in_y" date="1220716863" username="PHPKD" version="1.0.0"><![CDATA[Subscription X will Expire In Y]]></phrase>
+			<phrase name="phpkd_anse_regperiod_x_y_criteria" date="1220719229" username="PHPKD" version="1.0.0"><![CDATA[Registration period {1} {2}]]></phrase>
+			<phrase name="phpkd_anse_regperiod_x_y_equal" date="1220719279" username="PHPKD" version="1.0.0"><![CDATA[Equal]]></phrase>
+			<phrase name="phpkd_anse_regperiod_x_y_less" date="1220719251" username="PHPKD" version="1.0.0"><![CDATA[Less than]]></phrase>
+			<phrase name="phpkd_anse_regperiod_x_y_lessequal" date="1220719266" username="PHPKD" version="1.0.0"><![CDATA[Less than or Equal]]></phrase>
+			<phrase name="phpkd_anse_regperiod_x_y_more" date="1220719314" username="PHPKD" version="1.0.0"><![CDATA[More than]]></phrase>
+			<phrase name="phpkd_anse_regperiod_x_y_moreequal" date="1220719299" username="PHPKD" version="1.0.0"><![CDATA[More than or Equal]]></phrase>
+			<phrase name="phpkd_anse_request_params_x_y_criteria" date="1220718884" username="PHPKD" version="1.0.0"><![CDATA[$_REQUEST {1} And Parameters equal {2}]]></phrase>
+			<phrase name="phpkd_anse_server_environment_x_criteria" date="1220718832" username="PHPKD" version="1.0.0"><![CDATA[Server Environment {1} equal {2}]]></phrase>
+			<phrase name="phpkd_anse_subscription_x_y_in_z_criteria" date="1220717592" username="PHPKD" version="1.0.0"><![CDATA[Subscription {1} {2} {3} days]]></phrase>
+			<phrase name="phpkd_anse_this_script_is_in" date="1220717135" username="PHPKD" version="1.0.0"><![CDATA[Is In]]></phrase>
+			<phrase name="phpkd_anse_this_script_is_x_criteria" date="1220731435" username="PHPKD" version="1.0.0"><![CDATA[THIS_SCRIPT Constant {1} {2}]]></phrase>
+			<phrase name="phpkd_anse_this_script_isnot_in" date="1220717145" username="PHPKD" version="1.0.0"><![CDATA[Isn't In]]></phrase>
+			<phrase name="phpkd_anse_vote_on_poll_x_y_criteria" date="1220718621" username="PHPKD" version="1.0.0"><![CDATA[User {1} voted on poll {2}]]></phrase>
+			<phrase name="phpkd_anse_vote_on_poll_x_y_no" date="1220958220" username="PHPKD" version="1.0.0"><![CDATA[Doesn't Vote]]></phrase>
+			<phrase name="phpkd_anse_vote_on_poll_x_y_yes" date="1220718527" username="PHPKD" version="1.0.0"><![CDATA[Vote]]></phrase>
+			<phrase name="phpkd_anse_dismiss" date="1221086412" username="PHPKD" version="1.0.0"><![CDATA[Double Click to Dismiss]]></phrase>
+			<phrase name="phpkd_anse_restore" date="1221086437" username="PHPKD" version="1.0.0"><![CDATA[Double Click to Restore]]></phrase>
+		</phrasetype>
+		<phrasetype name="User Tools (global)" fieldname="user">
+			<phrase name="phpkd_anse_dismissed_notices" date="1221086213" username="PHPKD" version="1.0.0"><![CDATA[Dismissed Notices]]></phrase>
+		</phrasetype>
+		<phrasetype name="vBulletin Settings" fieldname="vbsettings">
+			<phrase name="setting_phpkd_anse_active_desc" date="1221075887" username="PHPKD" version="1.0.0" />
+			<phrase name="setting_phpkd_anse_active_title" date="1221075887" username="PHPKD" version="1.0.0"><![CDATA[Product Active?]]></phrase>
+			<phrase name="setting_phpkd_anse_notices_navbar_desc" date="1221087588" username="PHPKD" version="1.0.0" />
+			<phrase name="setting_phpkd_anse_notices_navbar_title" date="1221087588" username="PHPKD" version="1.0.0"><![CDATA[Where to display notices box?]]></phrase>
+			<phrase name="settinggroup_phpkd_anse" date="1221075850" username="PHPKD" version="1.0.0"><![CDATA[Advanced Notice System Enhancements]]></phrase>
+		</phrasetype>
+	</phrases>
+	<options>
+		<settinggroup name="phpkd_anse" displayorder="590">
+			<setting varname="phpkd_anse_active" displayorder="10">
+				<datatype>boolean</datatype>
+				<optioncode>yesno</optioncode>
+				<defaultvalue>1</defaultvalue>
+			</setting>
+			<setting varname="phpkd_anse_notices_navbar" displayorder="20">
+				<datatype>free</datatype>
+				<optioncode><![CDATA[select:piped
+<!-- breadcrumb, login, pm info -->|phpkd_anse_navbar_notices_above
+<!-- / nav buttons bar -->|phpkd_anse_navbar_notices_under]]></optioncode>
+				<defaultvalue><![CDATA[<!-- breadcrumb, login, pm info -->]]></defaultvalue>
+			</setting>
+		</settinggroup>
+	</options>
+	<helptopics>
+	</helptopics>
+	<cronentries>
+	</cronentries>
+	<faqentries>
+	</faqentries>
+</product>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<bitfields product="vbulletin">
+	<bitfielddefs>
+		<group name="ugp">
+			<group name="phpkdanse">
+				<bitfield name="candismiss" group="phpkdanse_permissions" phrase="phpkdanse_candismiss" install="1,2,3,4,5,6,7">1</bitfield>
+				<bitfield name="canrestore" group="phpkdanse_permissions" phrase="phpkdanse_canrestore" install="1,2,3,4,5,6,7">2</bitfield>
+				<bitfield name="canmanage"  group="phpkdanse_permissions" phrase="phpkdanse_canmanage"  install="1,2,3,4,5,6,7">4</bitfield>
+			</group>
+		</group>
+	</bitfielddefs>
+	<ignoregroups>
+		<group name="phpkdanse_permissions"       ignoregroups="1" />
+	</ignoregroups>
+</bitfields>
+
+<!-- CVS: $RCSfile$ - $Revision: 26275 $ -->
